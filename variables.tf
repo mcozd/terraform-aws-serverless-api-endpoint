@@ -1,8 +1,3 @@
-variable "api_name" {
-  type        = string
-  description = "The name of the rest api where you configure the routes."
-}
-
 variable "http_method" {
   type    = string
   default = "GET"
@@ -86,4 +81,9 @@ variable "resource" {
 variable "function" {
   type        = any
   description = "The function that is backing your configured endpoint."
+}
+
+variable "api" {
+  type = any
+  description = "The rest api that you want the endpoint to be added to."
 }
