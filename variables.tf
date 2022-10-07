@@ -84,6 +84,6 @@ variable "function" {
 }
 
 variable "api" {
-  type = any
+  type        = any
   description = "The rest api that you want the endpoint to be added to."
 }
