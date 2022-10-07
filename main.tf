@@ -6,10 +6,6 @@ locals {
   has_authorizer_attached = var.authorization.auth_type == "CUSTOM" && var.authorization.authorizer != null
 }
 
-data "aws_api_gateway_rest_api" "rest_api" {
-  name = var.api_name
-}
-
 data "aws_iam_policy_document" "invoke_policy" {
   count = local.has_iam_method_policies ? 1 : 0
 
@@ -23,7 +19,7 @@ data "aws_iam_policy_document" "invoke_policy" {
       "execute-api:Invoke"
     ]
     resources = [
-      "${data.aws_api_gateway_rest_api.rest_api.execution_arn}:*:${var.http_method}:${local.resource_path}"
+      "${var.api.execution_arn}:*:${var.http_method}:${local.resource_path}"
     ]
     dynamic "condition" {
       for_each = var.authorization.allow_for
@@ -38,19 +34,19 @@ data "aws_iam_policy_document" "invoke_policy" {
 
 data "aws_api_gateway_resource" "resource" {
   count       = var.resource.existing == null ? 0 : 1
-  rest_api_id = data.aws_api_gateway_rest_api.rest_api.id
+  rest_api_id = var.api.id
   path        = var.resource.existing.path
 }
 
 resource "aws_api_gateway_resource" "resource" {
   count       = var.resource.new_path == null ? 0 : 1
-  rest_api_id = data.aws_api_gateway_rest_api.rest_api.id
+  rest_api_id = var.api.id
   path_part   = var.resource.new_path.last_path_part
   parent_id   = var.resource.new_path.parent_resource_id
 }
 
 resource "aws_api_gateway_method" "method" {
-  rest_api_id   = data.aws_api_gateway_rest_api.rest_api.id
+  rest_api_id   = var.api.id
   resource_id   = local.resource_id
   http_method   = var.http_method
   authorization = var.authorization.auth_type
@@ -58,7 +54,7 @@ resource "aws_api_gateway_method" "method" {
 }
 
 resource "aws_api_gateway_integration" "integration" {
-  rest_api_id             = data.aws_api_gateway_rest_api.rest_api.id
+  rest_api_id             = var.api.id
   resource_id             = local.resource_id
   http_method             = aws_api_gateway_method.method.http_method
   type                    = "AWS_PROXY"
@@ -67,7 +63,7 @@ resource "aws_api_gateway_integration" "integration" {
 }
 
 resource "aws_api_gateway_method_settings" "settings" {
-  rest_api_id = data.aws_api_gateway_rest_api.rest_api.id
+  rest_api_id = var.api.id
   stage_name  = var.stage_name
   method_path = "${local.resource_last_path_part}/${var.http_method}"
 
@@ -82,5 +78,5 @@ resource "aws_lambda_permission" "allow-api-gateway-to-invoke-lambda" {
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
   # execution_arn/stage/method/path
-  source_arn = "${data.aws_api_gateway_rest_api.rest_api.execution_arn}/*/${aws_api_gateway_method.method.http_method}${local.resource_path}"
+  source_arn = "${var.api.execution_arn}/*/${aws_api_gateway_method.method.http_method}${local.resource_path}"
 }
