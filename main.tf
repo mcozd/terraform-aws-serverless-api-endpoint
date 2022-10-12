@@ -64,7 +64,7 @@ resource "aws_api_gateway_integration" "integration" {
 
 resource "aws_api_gateway_method_settings" "settings" {
   rest_api_id = var.api.id
-  stage_name  = var.stage.name
+  stage_name  = var.stage.stage_name
   method_path = "${local.resource_last_path_part}/${var.http_method}"
 
   settings {
