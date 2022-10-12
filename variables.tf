@@ -17,11 +17,6 @@ variable "log_level" {
   }
 }
 
-variable "stage_name" {
-  type        = string
-  description = "The name of the stage e.g. to set method settings."
-}
-
 variable "authorization" {
   type = object({
     auth_type = string
@@ -86,4 +81,9 @@ variable "function" {
 variable "api" {
   type        = any
   description = "The rest api that you want the endpoint to be added to."
+}
+
+variable "stage" {
+  type        = any
+  description = "The stage e.g. to set method settings and where endpoint configuration will be deployed."
 }
