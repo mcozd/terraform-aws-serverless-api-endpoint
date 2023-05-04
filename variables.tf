@@ -1,6 +1,7 @@
 variable "http_method" {
-  type    = string
-  default = "GET"
+  type     = string
+  nullable = false
+  default  = "GET"
   validation {
     condition     = contains(["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], var.http_method)
     error_message = "Only valid HTTP VERBS are allowed (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD)."
@@ -10,6 +11,7 @@ variable "http_method" {
 variable "log_level" {
   type        = string
   description = "Sets the log level of the rest resource in api gateway. Allowed values are OFF, ERROR, INFO."
+  nullable    = false
   default     = "INFO"
   validation {
     condition     = contains(["OFF", "ERROR", "INFO"], var.log_level)
@@ -25,13 +27,11 @@ variable "authorization" {
         operation = string
         variable  = string
         values    = list(string)
-      }))
-    )
+    })), null)
     authorizer = optional(
       object({
         id = string
-      })
-    )
+    }), null)
   })
 
   description = "All information that is required for authorization. Currently only NONE and AWS_IAM are supported."
@@ -40,6 +40,7 @@ variable "authorization" {
     allow_for  = null
     authorizer = null
   }
+  nullable = false
   validation {
     condition     = contains(["NONE", "AWS_IAM", "CUSTOM"], var.authorization.auth_type)
     error_message = "Only NONE, AWS_IAM and CUSTOM are currently supported."
@@ -57,16 +58,18 @@ variable "authorization" {
 
 variable "resource" {
   type = object({
-    existing = optional(object({
-      path = string
-    }))
-    new_path = optional(object({
-      parent_resource_id = string
-      last_path_part     = string
-    }))
+    existing = optional(
+      object({
+    path = string }), null)
+    new_path = optional(
+      object({
+        parent_resource_id = string
+        last_path_part     = string
+    }), null)
   })
 
   description = "The REST resource that you want to create or an existing resource that you want to attach the new operation."
+  nullable    = false
   validation {
     condition     = (var.resource.existing == null && var.resource.new_path != null) || (var.resource.existing != null && var.resource.new_path == null)
     error_message = "You either have to reference the existing path or supply values for a new path."
